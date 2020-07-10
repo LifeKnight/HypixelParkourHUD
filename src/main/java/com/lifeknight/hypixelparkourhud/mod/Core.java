@@ -179,12 +179,12 @@ public class Core {
             } else if (!message.contains(": ")) {
                 if (message.startsWith(housingParkourMessages[2]) || message.equals("Parkour challenge cancelled!")) {
                     ParkourSession.cancelParkourSession();
-                } else if (message.startsWith(housingParkourMessages[4]) || message.startsWith(housingParkourMessages[5]) || message.toLowerCase().startsWith(nickName.getValue().toLowerCase() + " completed the parkour in") || message.startsWith("Congratulations on completing the parkour! You finished in ") || message.endsWith("Try again to beat your old record!")) {
+                } else if (message.startsWith(housingParkourMessages[4]) || message.startsWith(housingParkourMessages[5]) || message.toLowerCase().startsWith(nickName.getValue().toLowerCase() + " completed the parkour in") || message.startsWith("Congratulations on completing the parkour! You finished in ") || message.endsWith("Try again to beat your old record!") || message.startsWith("That's a new record of ")) {
                     ParkourSession.endCurrentSession();
                     if (automaticallyEnableAndDisableFlying.getValue() && !Minecraft.getMinecraft().thePlayer.capabilities.allowFlying) {
                         Chat.sendChatMessage("/fly", Chat.NORMAL);
                     }
-                } else if (message.startsWith(housingParkourMessages[3]) || message.startsWith("You finished this part of the parkour in ")) {
+                } else if (message.startsWith(housingParkourMessages[3])) {
                     ParkourSession.onCheckpointReached();
                 }
             }
