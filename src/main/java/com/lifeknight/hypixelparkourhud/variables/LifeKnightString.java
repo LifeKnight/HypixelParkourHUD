@@ -2,7 +2,7 @@ package com.lifeknight.hypixelparkourhud.variables;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.configuration;
+import static com.lifeknight.hypixelparkourhud.mod.Core.configuration;
 
 public class LifeKnightString extends LifeKnightVariable {
     private final String defaultValue;

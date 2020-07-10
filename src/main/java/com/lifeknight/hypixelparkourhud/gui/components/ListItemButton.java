@@ -8,7 +8,6 @@ import net.minecraft.client.gui.GuiButton;
 import static com.lifeknight.hypixelparkourhud.utilities.Miscellaneous.get2ndPanelCenter;
 
 public abstract class ListItemButton extends GuiButton {
-    private final String buttonText;
     public boolean isSelectedButton = false;
     public int originalYPosition;
 
@@ -17,9 +16,8 @@ public abstract class ListItemButton extends GuiButton {
                 (10 + ((componentId - 6) * 30)),
                 200,
                 20, element);
-        this.buttonText = element;
         int j;
-        if ((j = Minecraft.getMinecraft().fontRendererObj.getStringWidth(buttonText) + 30) > this.width) {
+        if ((j = Minecraft.getMinecraft().fontRendererObj.getStringWidth(displayString) + 30) > this.width) {
             this.width = j;
             this.xPosition = get2ndPanelCenter() - this.width / 2;
         }
@@ -36,10 +34,6 @@ public abstract class ListItemButton extends GuiButton {
             isSelectedButton = false;
             return false;
         }
-    }
-
-    public String getButtonText() {
-        return buttonText;
     }
 
     public void updateOriginalYPosition() {

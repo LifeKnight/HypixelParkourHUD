@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.configuration;
+import static com.lifeknight.hypixelparkourhud.mod.Core.configuration;
 
 public abstract class LifeKnightObjectList extends LifeKnightVariable {
     private final List<LifeKnightObject> defaultValues;

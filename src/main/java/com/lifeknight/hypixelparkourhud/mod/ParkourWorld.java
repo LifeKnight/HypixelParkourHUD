@@ -1,8 +1,13 @@
 package com.lifeknight.hypixelparkourhud.mod;
 
+import com.lifeknight.hypixelparkourhud.utilities.Miscellaneous;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static com.lifeknight.hypixelparkourhud.mod.Core.sessionIsRunning;
+import static com.lifeknight.hypixelparkourhud.mod.Core.timeToCompare;
 
 public class ParkourWorld {
     private static final List<ParkourWorld> parkourWorlds = new ArrayList<>();
@@ -22,6 +27,35 @@ public class ParkourWorld {
         return sessions;
     }
 
+    public List<ParkourSession> getSessionsOrdered(boolean orderType) {
+        List<ParkourSession> clone = new ArrayList<>(sessions);
+        List<ParkourSession> result = new ArrayList<>();
+        if (orderType) {
+            while (clone.size() != 0) {
+                ParkourSession nextParkourSession = clone.get(0);
+                for (ParkourSession parkourSession : clone) {
+                    if (parkourSession.getStartTime() > nextParkourSession.getStartTime()) {
+                        nextParkourSession = parkourSession;
+                    }
+                }
+                result.add(nextParkourSession);
+                clone.remove(nextParkourSession);
+            }
+        } else {
+            while (clone.size() != 0) {
+                ParkourSession nextParkourSession = clone.get(0);
+                for (ParkourSession parkourSession : clone) {
+                    if (parkourSession.getMillisecondsElapsed() < nextParkourSession.getMillisecondsElapsed()) {
+                        nextParkourSession = parkourSession;
+                    }
+                }
+                result.add(nextParkourSession);
+                clone.remove(nextParkourSession);
+            }
+        }
+        return result;
+    }
+
     public boolean isType() {
         return type;
     }
@@ -30,7 +64,40 @@ public class ParkourWorld {
         return location;
     }
 
-    public ParkourSession getLatestSession() {
+    public static List<ParkourWorld> getParkourWorlds() {
+        return parkourWorlds;
+    }
+
+    public ParkourSession getSessionToCompare() {
+        List<ParkourSession> clone = new ArrayList<>(sessions);
+        List<ParkourSession> result = new ArrayList<>();
+        if (timeToCompare.getValue() == 0) {
+            while (clone.size() != 0) {
+                ParkourSession fastestParkourSession = null;
+                for (ParkourSession parkourSession : clone) {
+                    if (fastestParkourSession == null || parkourSession.getMillisecondsElapsed() < fastestParkourSession.getMillisecondsElapsed() && parkourSession.getCheckpointTimes().size() == getLatestParkourSession().getCheckpointTimes().size())
+                        fastestParkourSession = parkourSession;
+                }
+                result.add(fastestParkourSession);
+                clone.remove(fastestParkourSession);
+                if (result.size() > 1) break;
+            }
+            return sessionIsRunning || result.size() == 1 ? result.get(0) : result.get(1);
+        }
+        while (clone.size() != 0) {
+            ParkourSession latestParkourSession = null;
+            for (ParkourSession parkourSession : clone) {
+                if (latestParkourSession == null || parkourSession.getStartTime() > latestParkourSession.getStartTime() && parkourSession.getCheckpointTimes().size() == getLatestParkourSession().getCheckpointTimes().size())
+                    latestParkourSession = parkourSession;
+            }
+            result.add(latestParkourSession);
+            clone.remove(latestParkourSession);
+            if (result.size() > 1) break;
+        }
+        return sessionIsRunning ? result.get(0) : result.get(1);
+    }
+
+    public ParkourSession getLatestParkourSession() {
         ParkourSession latestParkourSession = null;
         for (ParkourSession parkourSession : sessions) {
             if (latestParkourSession == null || parkourSession.getStartTime() > latestParkourSession.getStartTime())
@@ -63,7 +130,7 @@ public class ParkourWorld {
 
     public static ParkourWorld getCurrentParkourWorld() {
         for (ParkourWorld parkourWorld : parkourWorlds) {
-            if (parkourWorld.type == Mod.type && parkourWorld.location.equals(Mod.location)) return parkourWorld;
+            if (parkourWorld.type == Core.type && parkourWorld.location.equals(Core.location)) return parkourWorld;
         }
         return null;
     }
@@ -80,5 +147,23 @@ public class ParkourWorld {
     @Override
     public int hashCode() {
         return Objects.hash(type, location);
+    }
+
+    public void clearSessions() {
+        for (ParkourSession parkourSession : sessions) {
+            if (!parkourSession.isDeleted()) {
+                parkourSession.toggleDelete();
+            }
+        }
+    }
+
+    public void toggleByLocation(String displayString, boolean displayType) {
+        for (ParkourSession parkourSession : sessions) {
+            if (displayType ? parkourSession.getFormattedDate().equals(displayString) :
+                    Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()).equals(displayString)) {
+                parkourSession.toggleDelete();
+                break;
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.lifeknight.hypixelparkourhud.variables;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.configuration;
+import static com.lifeknight.hypixelparkourhud.mod.Core.configuration;
 
 public abstract class LifeKnightNumber extends LifeKnightVariable {
     protected final Number defaultValue;

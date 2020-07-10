@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.hudTextShadow;
+import static com.lifeknight.hypixelparkourhud.mod.Core.hudTextShadow;
 import static net.minecraft.util.EnumChatFormatting.*;
 
 public abstract class EnhancedHudText extends Manipulable {

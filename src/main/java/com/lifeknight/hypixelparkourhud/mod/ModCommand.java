@@ -1,9 +1,5 @@
 package com.lifeknight.hypixelparkourhud.mod;
 
-import com.lifeknight.hypixelparkourhud.gui.LifeKnightGui;
-import com.lifeknight.hypixelparkourhud.gui.ManipulableGui;
-import com.lifeknight.hypixelparkourhud.gui.components.LifeKnightButton;
-import com.lifeknight.hypixelparkourhud.variables.LifeKnightVariable;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
@@ -12,7 +8,7 @@ import net.minecraft.command.ICommandSender;
 import java.util.Collections;
 import java.util.List;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.*;
+import static com.lifeknight.hypixelparkourhud.mod.Core.*;
 
 public class ModCommand extends CommandBase {
     private final List<String> aliases = Collections.singletonList("hph");
@@ -42,13 +38,7 @@ public class ModCommand extends CommandBase {
     }
 
     public void processCommand(ICommandSender iCommandSender, String[] arguments) throws CommandException {
-        openGui(new LifeKnightGui("[" + modVersion + "] " + modName, LifeKnightVariable.getVariables(), Collections.singletonList(
-                new LifeKnightButton("Edit HUD") {
-                    @Override
-                    public void work() {
-                        openGui(new ManipulableGui());
-                    }
-                })));
+        openGui(defaultGui);
     }
 
 }

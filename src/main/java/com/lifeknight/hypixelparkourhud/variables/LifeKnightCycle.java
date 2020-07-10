@@ -2,10 +2,9 @@ package com.lifeknight.hypixelparkourhud.variables;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import java.io.IOException;
 import java.util.List;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.*;
+import static com.lifeknight.hypixelparkourhud.mod.Core.*;
 
 public class LifeKnightCycle extends LifeKnightVariable {
     private final List<String> defaultValues;

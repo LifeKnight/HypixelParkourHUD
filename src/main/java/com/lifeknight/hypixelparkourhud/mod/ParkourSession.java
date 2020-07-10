@@ -3,11 +3,11 @@ package com.lifeknight.hypixelparkourhud.mod;
 import com.google.gson.*;
 import com.lifeknight.hypixelparkourhud.utilities.Stopwatch;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.parkourLogger;
-import static com.lifeknight.hypixelparkourhud.mod.Mod.sessionIsRunning;
+import static com.lifeknight.hypixelparkourhud.mod.Core.*;
 
 public class ParkourSession {
     private static final List<ParkourSession> parkourSessions = new ArrayList<>();
@@ -95,16 +95,32 @@ public class ParkourSession {
         return location;
     }
 
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void toggleDelete() {
+        isDeleted = !isDeleted;
+        if (isDeleted) {
+            try {
+                deletedSessionIds.addElement(this.id);
+            } catch (Exception ignored) {
+            }
+        } else {
+            try {
+                deletedSessionIds.removeElement(this.id);
+            } catch (Exception ignored) {
+
+            }
+        }
+    }
+
     public List<Long> getCheckpointTimes() {
         return checkpointTimes;
     }
 
     public long getStartTime() {
         return startTime;
-    }
-
-    public static ParkourSession getCurrentParkourSession() {
-        return currentParkourSession;
     }
 
     public long getLastCheckpointTime() {
@@ -122,6 +138,18 @@ public class ParkourSession {
             result += checkpointTimes.get(i);
         }
         return result;
+    }
+
+    public String getFormattedDate() {
+        return new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(startTime);
+    }
+
+    public static ParkourSession getCurrentParkourSession() {
+        return currentParkourSession;
+    }
+
+    public static List<ParkourSession> getParkourSessions() {
+        return parkourSessions;
     }
 
     @Override
@@ -156,7 +184,9 @@ public class ParkourSession {
                 checkpointTimes.add(checkpointTime.getAsLong());
             }
 
-            new ParkourSession(id, type, location, startTime, millisecondsElapsed, checkpointTimes);
+            ParkourSession parkourSession = new ParkourSession(id, type, location, startTime, millisecondsElapsed, checkpointTimes);
+
+            parkourSession.isDeleted = deletedSessionIds.getValue().contains(parkourSession.id);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

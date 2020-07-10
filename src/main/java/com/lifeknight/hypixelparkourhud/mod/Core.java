@@ -2,6 +2,10 @@ package com.lifeknight.hypixelparkourhud.mod;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.lifeknight.hypixelparkourhud.gui.LifeKnightGui;
+import com.lifeknight.hypixelparkourhud.gui.ManipulableGui;
+import com.lifeknight.hypixelparkourhud.gui.ParkourWorldListGui;
+import com.lifeknight.hypixelparkourhud.gui.components.LifeKnightButton;
 import com.lifeknight.hypixelparkourhud.gui.hud.EnhancedHudText;
 import com.lifeknight.hypixelparkourhud.gui.hud.ParkourHud;
 import com.lifeknight.hypixelparkourhud.utilities.*;
@@ -30,8 +34,8 @@ import java.util.concurrent.Executors;
 
 import static net.minecraft.util.EnumChatFormatting.*;
 
-@net.minecraftforge.fml.common.Mod(modid = Mod.modId, name = Mod.modName, version = Mod.modVersion, clientSideOnly = true)
-public class Mod {
+@net.minecraftforge.fml.common.Mod(modid = Core.modId, name = Core.modName, version = Core.modVersion, clientSideOnly = true)
+public class Core {
     public static final String
             modName = "Hypixel Parkour HUD",
             modVersion = "1.0",
@@ -44,13 +48,21 @@ public class Mod {
     public static final LifeKnightBoolean hudTextShadow = new LifeKnightBoolean("HUD Text Shadow", "HUD", true);
     private static final LifeKnightCycle showHud = new LifeKnightCycle("Show HUD", "HUD", Arrays.asList(
             "No",
-            "When active",
+            "When Active",
             "Yes"
     ), 1);
     public static final LifeKnightCycle timeDisplayType = new LifeKnightCycle("Time Type", "HUD", Arrays.asList(
-            "Total time",
+            "Total",
             "Interval"
     ));
+    public static final LifeKnightCycle timeToCompare = new LifeKnightCycle("Time To Compare", "HUD", Arrays.asList(
+            "Best",
+            "Latest"
+    ));
+    public static final LifeKnightNumber.LifeKnightInteger hudOpacity = new LifeKnightNumber.LifeKnightInteger("HUD Opacity", "HUD", 70, 0, 100);
+    public static final LifeKnightBoolean automaticallyEnableAndDisableFlying = new LifeKnightBoolean("Auto Enable/Disable Fly", "Settings", false);
+    public static final LifeKnightString nickName = new LifeKnightString("Nickname", "Settings", "");
+    public static final LifeKnightList.LifeKnightIntegerList deletedSessionIds = new LifeKnightList.LifeKnightIntegerList("Deleted Session IDs", "Extra");
     public static Logger parkourLogger;
     public static Configuration configuration;
     final String[] housingParkourMessages = {
@@ -64,14 +76,27 @@ public class Mod {
     public static boolean type = false;
     public static String location = "";
     public static boolean sessionIsRunning = false;
-    private static boolean endogenous = false;
     private static ParkourHud parkourHud;
     private static boolean requestSent = false;
+    public static final LifeKnightGui defaultGui = new LifeKnightGui("[" + modVersion + "] " + modName, LifeKnightVariable.getVariables(), Arrays.asList(
+            new LifeKnightButton("View Sessions") {
+                @Override
+                public void work() {
+                    openGui(new ParkourWorldListGui());
+                }
+            },
+            new LifeKnightButton("Edit HUD") {
+                @Override
+                public void work() {
+                    openGui(new ManipulableGui());
+                }
+            }));
 
     @EventHandler
     public void init(FMLInitializationEvent initEvent) {
         MinecraftForge.EVENT_BUS.register(this);
         ClientCommandHandler.instance.registerCommand(new ModCommand());
+        deletedSessionIds.setShowInLifeKnightGui(false);
 
         parkourLogger = new Logger(new File("logs/lifeknight/hypixelparkourhud"));
 
@@ -100,9 +125,8 @@ public class Mod {
             if (message.startsWith("{")) {
                 try {
                     JsonObject jsonObject = new JsonParser().parse(message).getAsJsonObject();
-                    if (endogenous) {
+                    if (requestSent) {
                         event.setCanceled(true);
-                        endogenous = false;
                     }
                     if (jsonObject.has("server")) {
                         type = !jsonObject.get("server").getAsString().contains("lobby");
@@ -130,7 +154,7 @@ public class Mod {
                                     found = true;
                                 } else if (found) {
                                     ScorePlayerTeam scorePlayerTeam1 = scorePlayerTeams.get(i);
-                                    if (Logic.containsNonWhiteSpace(EnumChatFormatting.getTextWithoutFormattingCodes(scorePlayerTeam1.getColorPrefix())) && !scorePlayerTeam1.getColorPrefix().equals("§6[MVP§f++§6] ")) {
+                                    if (Logic.containsNonWhiteSpace(EnumChatFormatting.getTextWithoutFormattingCodes(scorePlayerTeam1.getColorPrefix())) && !EnumChatFormatting.getTextWithoutFormattingCodes(scorePlayerTeam1.getColorPrefix()).equals("[MVP++] ")) {
                                         nameIndex = i;
                                         break;
                                     }
@@ -145,16 +169,21 @@ public class Mod {
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
-            } else if (message.equals("You are sending commands too fast! Please slow down.") && endogenous) {
+            } else if (message.equals("You are sending commands too fast! Please slow down.") && requestSent) {
                 event.setCanceled(true);
-                endogenous = false;
             } else if (message.equals(housingParkourMessages[0]) || message.equalsIgnoreCase(housingParkourMessages[1])) {
                 ParkourSession.createAndActivate(type, location);
+                if (automaticallyEnableAndDisableFlying.getValue() && Minecraft.getMinecraft().thePlayer.capabilities.allowFlying) {
+                    Chat.sendChatMessage("/fly", Chat.NORMAL);
+                }
             } else if (!message.contains(": ")) {
-                if (message.startsWith(housingParkourMessages[2])) {
+                if (message.startsWith(housingParkourMessages[2]) || message.equals("Parkour challenge cancelled!")) {
                     ParkourSession.cancelParkourSession();
-                } else if (message.startsWith(housingParkourMessages[4]) || message.startsWith(housingParkourMessages[5]) || message.startsWith("Congratulations on completing the parkour! You finished in ") || message.endsWith("Try again to beat your old record!")) {
+                } else if (message.startsWith(housingParkourMessages[4]) || message.startsWith(housingParkourMessages[5]) || message.toLowerCase().startsWith(nickName.getValue().toLowerCase() + " completed the parkour in") || message.startsWith("Congratulations on completing the parkour! You finished in ") || message.endsWith("Try again to beat your old record!")) {
                     ParkourSession.endCurrentSession();
+                    if (automaticallyEnableAndDisableFlying.getValue() && !Minecraft.getMinecraft().thePlayer.capabilities.allowFlying) {
+                        Chat.sendChatMessage("/fly", Chat.NORMAL);
+                    }
                 } else if (message.startsWith(housingParkourMessages[3]) || message.startsWith("You finished this part of the parkour in ")) {
                     ParkourSession.onCheckpointReached();
                 }
@@ -169,7 +198,6 @@ public class Mod {
                 @Override
                 public void run() {
                     Chat.sendChatMessage("/locraw", Chat.NORMAL);
-                    endogenous = true;
                     requestSent = true;
                     THREAD_POOL.submit(() -> {
                         try {

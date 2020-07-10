@@ -6,7 +6,6 @@ import com.lifeknight.hypixelparkourhud.mod.ParkourWorld;
 import com.lifeknight.hypixelparkourhud.utilities.Miscellaneous;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -14,7 +13,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 
 import static net.minecraft.util.EnumChatFormatting.*;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.*;
+import static com.lifeknight.hypixelparkourhud.mod.Core.*;
 
 public class ParkourHud extends Manipulable {
     final float[] light = {
@@ -38,13 +37,12 @@ public class ParkourHud extends Manipulable {
 
     @Override
     public int getHeight() {
+        ParkourWorld parkourWorld;
+        if ((parkourWorld = ParkourWorld.getCurrentParkourWorld()) != null && parkourWorld.getSessions().size() != 0) {
+            return parkourWorld.getSessionToCompare().getCheckpointTimes().size() * 12 + 12;
+        }
         ParkourSession parkourSession;
         if ((parkourSession = ParkourSession.getCurrentParkourSession()) != null) {
-            ParkourWorld parkourWorld = ParkourWorld.getCurrentParkourWorld();
-            if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
-                ParkourSession previousParkourSession = parkourWorld.getSessions().get(parkourWorld.getSessions().size() - (sessionIsRunning ? 1 : 2));
-                return previousParkourSession.getCheckpointTimes().size() * 12 + 12;
-            }
             return parkourSession.getCheckpointTimes().size() * 12 + 12;
         }
         return 12;
@@ -53,27 +51,29 @@ public class ParkourHud extends Manipulable {
     @Override
     public void drawButton(Minecraft minecraft, int mouseX, int mouseY, int xPosition, int yPosition, int width, int height, boolean isSelectedButton) {
         ParkourWorld parkourWorld = ParkourWorld.getCurrentParkourWorld();
-        ParkourSession parkourSession = sessionIsRunning || parkourWorld == null || parkourWorld.getSessions().size() == 0 ? ParkourSession.getCurrentParkourSession() : parkourWorld.getLatestSession();
-
+        ParkourSession parkourSession = sessionIsRunning || parkourWorld == null || parkourWorld.getSessions().size() == 0 ? ParkourSession.getCurrentParkourSession() : parkourWorld.getLatestParkourSession();
+        
+        float opacity = ((float) hudOpacity.getValue() / 100.0F) * 255F;
+        
         if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
-            ParkourSession previousParkourSession = parkourWorld.getSessions().get(parkourWorld.getSessions().size() - (sessionIsRunning ? 1 : 2));
-            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, 180F, parkourWorld.getLocation(), parkourSession == null ? "" : (!sessionIsRunning ? ((previousParkourSession.getMillisecondsElapsed() > parkourSession.getMillisecondsElapsed() ? (GREEN + "-") : (RED + "+")) + Math.abs((previousParkourSession.getMillisecondsElapsed() - parkourSession.getMillisecondsElapsed())) / 1000.F + " ") : "") + WHITE + Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
+            ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
+            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld.getLocation(), parkourSession == null ? "" : (!sessionIsRunning ? ((previousParkourSession.getMillisecondsElapsed() > parkourSession.getMillisecondsElapsed() ? (GREEN + "-") : (RED + "+")) + Math.abs((previousParkourSession.getMillisecondsElapsed() - parkourSession.getMillisecondsElapsed())) / 1000.F + " ") : "") + WHITE + Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         } else {
-            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, 180F, parkourWorld == null ? "NULL" : parkourWorld.getLocation(), parkourSession == null ? "" : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
+            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld == null ? "NULL" : parkourWorld.getLocation(), parkourSession == null ? "" : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         }
         if (parkourSession != null) {
             if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
-                ParkourSession previousParkourSession = parkourWorld.getSessions().get(parkourWorld.getSessions().size() - (sessionIsRunning ? 1 : 2));
+                ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
                 for (int i = 0; i < previousParkourSession.getCheckpointTimes().size(); i++) {
                     float[] color = i % 2 == 0 ? light : dark;
                     if (parkourSession.getCheckpointTimes().size() > i) {
                         long checkpointTime = parkourSession.getCheckpointTimes().get(i);
                         long previousCheckpointTime = previousParkourSession.getCheckpointTimes().get(i);
-                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, 180F, "Checkpoint #" + (i + 1),
+                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, opacity, "Checkpoint #" + (i + 1),
                                 (previousCheckpointTime > checkpointTime ? (GREEN + "-") : (RED + "+")) + Math.abs(previousCheckpointTime - checkpointTime) / 1000.F + " " + WHITE + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                     } else {
                         long checkpointTime = previousParkourSession.getCheckpointTimes().get(i);
-                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, 180F, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
+                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, opacity, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
                                 Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed() - parkourSession.getLastCheckpointTime()) :
                                 YELLOW + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? previousParkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                     }
@@ -82,7 +82,7 @@ public class ParkourHud extends Manipulable {
                 for (int i = 0; i < parkourSession.getCheckpointTimes().size(); i++) {
                     float[] color = i % 2 == 0 ? light : dark;
                     long checkpointTime = parkourSession.getCheckpointTimes().get(i);
-                    drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, 180F, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
+                    drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, opacity, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
                             Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed() - parkourSession.getLastCheckpointTime()) :
                             Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                 }
@@ -95,27 +95,29 @@ public class ParkourHud extends Manipulable {
         int xPosition = super.getXCoordinate();
         int yPosition = super.getYCoordinate();
 
-        ParkourSession parkourSession = sessionIsRunning || parkourWorld == null || parkourWorld.getSessions().size() == 0 ? ParkourSession.getCurrentParkourSession() : parkourWorld.getLatestSession();
+        float opacity = ((float) hudOpacity.getValue() / 100.0F) * 255F;
+
+        ParkourSession parkourSession = sessionIsRunning || parkourWorld == null || parkourWorld.getSessions().size() == 0 ? ParkourSession.getCurrentParkourSession() : parkourWorld.getLatestParkourSession();
 
         if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
-            ParkourSession previousParkourSession = parkourWorld.getSessions().get(parkourWorld.getSessions().size() - (sessionIsRunning ? 1 : 2));
-            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, 180F, parkourWorld.getLocation(), parkourSession == null ? "" : (!sessionIsRunning ? ((previousParkourSession.getMillisecondsElapsed() > parkourSession.getMillisecondsElapsed() ? (GREEN + "-") : (RED + "+")) + Math.abs((previousParkourSession.getMillisecondsElapsed() - parkourSession.getMillisecondsElapsed())) / 1000.F + " ") : "") + WHITE + Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
+            ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
+            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld.getLocation(), parkourSession == null ? "" : (!sessionIsRunning ? ((previousParkourSession.getMillisecondsElapsed() > parkourSession.getMillisecondsElapsed() ? (GREEN + "-") : (RED + "+")) + Math.abs((previousParkourSession.getMillisecondsElapsed() - parkourSession.getMillisecondsElapsed())) / 1000.F + " ") : "") + WHITE + Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         } else {
-            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, 180F, parkourWorld == null ? "NULL" : parkourWorld.getLocation(), parkourSession == null ? "" : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
+            drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld == null ? "NULL" : parkourWorld.getLocation(), parkourSession == null ? "" : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         }
         if (parkourSession != null) {
             if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
-                ParkourSession previousParkourSession = parkourWorld.getSessions().get(parkourWorld.getSessions().size() - (sessionIsRunning ? 1 : 2));
+                ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
                 for (int i = 0; i < previousParkourSession.getCheckpointTimes().size(); i++) {
                     float[] color = i % 2 == 0 ? light : dark;
                     if (parkourSession.getCheckpointTimes().size() > i) {
                         long checkpointTime = parkourSession.getCheckpointTimes().get(i);
                         long previousCheckpointTime = previousParkourSession.getCheckpointTimes().get(i);
-                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, 180F, "Checkpoint #" + (i + 1),
+                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, opacity, "Checkpoint #" + (i + 1),
                                 (previousCheckpointTime > checkpointTime ? (GREEN + "-") : (RED + "+")) + Math.abs(previousCheckpointTime - checkpointTime) / 1000.F + " " + WHITE + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                     } else {
                         long checkpointTime = previousParkourSession.getCheckpointTimes().get(i);
-                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, 180F, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
+                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, opacity, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
                                 Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed() - parkourSession.getLastCheckpointTime()) :
                                 YELLOW + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? previousParkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                     }
@@ -124,20 +126,20 @@ public class ParkourHud extends Manipulable {
                 for (int i = 0; i < parkourSession.getCheckpointTimes().size(); i++) {
                     float[] color = i % 2 == 0 ? light : dark;
                     long checkpointTime = parkourSession.getCheckpointTimes().get(i);
-                    drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, 180F, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
+                    drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, color, opacity, "Checkpoint #" + (i + 1), (i == parkourSession.getCheckpointTimes().size() - 1 && sessionIsRunning) ?
                             Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed() - parkourSession.getLastCheckpointTime()) :
                             Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : checkpointTime));
                 }
             }
         }
-        drawEmptyBox(xPosition, yPosition, xPosition + getWidth(), yPosition + getHeight(), new float[]{28, 28, 28}, 200);
+        drawEmptyBox(xPosition, yPosition, xPosition + getWidth(), yPosition + getHeight(), new float[]{28, 28, 28}, opacity * 1.2F);
     }
 
     public void drawRectangleWithStrings(int left, int top, int right, int bottom, float[] colors, float alpha, String leftText, String rightText) {
         drawRectangle(left, top, right, bottom, colors, alpha);
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
-        fontRenderer.drawString(leftText, left + 1, top + 2, 0xffffffff, hudTextShadow.getValue());
-        fontRenderer.drawString(rightText, right - fontRenderer.getStringWidth(rightText), top + 2, 0xffffffff, hudTextShadow.getValue());
+        fontRenderer.drawString(leftText, left + 2, top + 2, 0xffffffff, hudTextShadow.getValue());
+        fontRenderer.drawString(rightText, right - fontRenderer.getStringWidth(rightText) - 1, top + 2, 0xffffffff, hudTextShadow.getValue());
     }
 
     public void drawEmptyBox(int left, int top, int right, int bottom, float[] colors, float alpha) {

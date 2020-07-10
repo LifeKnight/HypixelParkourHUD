@@ -1,8 +1,10 @@
 package com.lifeknight.hypixelparkourhud.gui;
 
 import com.lifeknight.hypixelparkourhud.gui.components.*;
-import com.lifeknight.hypixelparkourhud.variables.LifeKnightObject;
-import com.lifeknight.hypixelparkourhud.variables.LifeKnightObjectList;
+import com.lifeknight.hypixelparkourhud.mod.ParkourSession;
+import com.lifeknight.hypixelparkourhud.mod.ParkourWorld;
+import com.lifeknight.hypixelparkourhud.utilities.Miscellaneous;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Mouse;
@@ -13,35 +15,31 @@ import java.util.List;
 
 import static com.lifeknight.hypixelparkourhud.mod.Core.openGui;
 import static com.lifeknight.hypixelparkourhud.utilities.Miscellaneous.*;
-import static net.minecraft.util.EnumChatFormatting.GRAY;
-import static net.minecraft.util.EnumChatFormatting.RED;
+import static net.minecraft.util.EnumChatFormatting.*;
 
-public class LifeKnightObjectListGui extends GuiScreen {
+public class ParkourWorldGui extends GuiScreen {
     private final List<ListItemButton> listItemButtons = new ArrayList<>();
     private final List<LifeKnightButton> openButtons = new ArrayList<>();
-    private final LifeKnightObjectList lifeKnightObjectList;
+    private final ParkourWorld parkourWorld;
     private ConfirmButton clearButton;
     private ScrollBar scrollBar;
     private LifeKnightTextField searchField;
     public ListItemButton selectedItem;
-    public LifeKnightButton addButton, removeButton;
+    public LifeKnightButton workWithSelectedbuttonButton;
     private String searchInput = "", listMessage = "";
     public GuiScreen lastGui;
+    private boolean showType = true;
+    private boolean orderType = true;
 
-    public LifeKnightObjectListGui(LifeKnightObjectList lifeKnightObjectList) {
-        this.lifeKnightObjectList = lifeKnightObjectList;
-        lastGui = null;
-    }
-
-    public LifeKnightObjectListGui(LifeKnightObjectList lifeKnightObjectList, GuiScreen lastGui) {
-        this(lifeKnightObjectList);
+    public ParkourWorldGui(ParkourWorld parkourWorld, GuiScreen lastGui) {
+        this.parkourWorld = parkourWorld;
         this.lastGui = lastGui;
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
         drawCenteredString(fontRendererObj, listMessage, get2ndPanelCenter(), super.height / 2, 0xffffffff);
-        drawCenteredString(fontRendererObj, lifeKnightObjectList.getCustomDisplayString(), getScaledWidth(150), getScaledHeight(60), 0xffffffff);
+        drawCenteredString(fontRendererObj, parkourWorld.getLocation(), getScaledWidth(150), getScaledHeight(60), 0xffffffff);
         drawVerticalLine(getScaledWidth(300), 0, super.height, 0xffffffff);
         searchField.drawTextBoxAndName();
 
@@ -93,30 +91,47 @@ public class LifeKnightObjectListGui extends GuiScreen {
             }
         };
 
-        super.buttonList.add(addButton = new LifeKnightButton("Add", 2, getScaledWidth(75), getScaledHeight(165), getScaledWidth(150)) {
+        super.buttonList.add(new LifeKnightButton("Order: Date", 20, getScaledWidth(75), getScaledHeight(135), getScaledWidth(150)) {
             @Override
             public void work() {
-                try {
-                    lifeKnightObjectList.addElement(lifeKnightObjectList.getDefault());
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
+                orderType = !orderType;
+                this.displayString = "Order: " + (orderType ? "Date" : "Time");
                 listItems();
             }
         });
 
-        super.buttonList.add(removeButton = new LifeKnightButton("Remove", 3, getScaledWidth(75), getScaledHeight(230), getScaledWidth(150)) {
+        super.buttonList.add(new LifeKnightButton("", 20, getScaledWidth(75), getScaledHeight(195), getScaledWidth(150)) {
             @Override
             public void work() {
-                removeSelectedButton();
+                showType = !showType;
+                listItems();
+            }
+
+            @Override
+            public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+                displayString = showType ? GREEN + "Visible" : RED + "Deleted";
+                super.drawButton(mc, mouseX, mouseY);
             }
         });
-        removeButton.visible = false;
 
-        super.buttonList.add(clearButton = new ConfirmButton(4, getScaledWidth(75), getScaledHeight(295), getScaledWidth(150), "Clear", RED + "Confirm") {
+        super.buttonList.add(workWithSelectedbuttonButton = new LifeKnightButton("Remove", 3, getScaledWidth(75), getScaledHeight(260), getScaledWidth(150)) {
+            @Override
+            public void work() {
+                workWithSelectedButton();
+            }
+
+            @Override
+            public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+                displayString = showType ? "Restore" : "Delete";
+                super.drawButton(mc, mouseX, mouseY);
+            }
+        });
+        workWithSelectedbuttonButton.visible = false;
+
+        super.buttonList.add(clearButton = new ConfirmButton(4, getScaledWidth(75), getScaledHeight(325), getScaledWidth(150), "Clear", RED + "Confirm") {
             @Override
             public void onConfirm() {
-                lifeKnightObjectList.clear();
+                parkourWorld.clearSessions();
                 listItems();
             }
         });
@@ -126,15 +141,18 @@ public class LifeKnightObjectListGui extends GuiScreen {
             @Override
             public void onDrag(int scroll) {
                 scroll = -scroll;
-                int scaledScroll = (int) (scroll * (listItemButtons.size() * 30) / (double) LifeKnightObjectListGui.super.height);
+                int scaledScroll = (int) (scroll * (listItemButtons.size() * 30) / (double) ParkourWorldGui.super.height);
                 while (scaledScroll > 0 && listItemButtons.get(0).originalYPosition + scaledScroll > 10) {
                     scaledScroll--;
                 }
-                while (scaledScroll < 0 && listItemButtons.get(listItemButtons.size() - 1).originalYPosition + 30 + scaledScroll < LifeKnightObjectListGui.super.height - 10) {
+                while (scaledScroll < 0 && listItemButtons.get(listItemButtons.size() - 1).originalYPosition + 30 + scaledScroll < ParkourWorldGui.super.height - 10) {
                     scaledScroll++;
                 }
                 for (ListItemButton listItemButton : listItemButtons) {
                     listItemButton.yPosition = listItemButton.originalYPosition + scaledScroll;
+                }
+                for (LifeKnightButton openButton : openButtons) {
+                    openButton.yPosition = openButton.originalYPosition + scaledScroll;
                 }
             }
 
@@ -143,17 +161,17 @@ public class LifeKnightObjectListGui extends GuiScreen {
                 for (ListItemButton listItemButton : listItemButtons) {
                     listItemButton.updateOriginalYPosition();
                 }
+                for (LifeKnightButton openButton : openButtons) {
+                    openButton.updateOriginalYPosition();
+                }
             }
         });
-
-        if (lastGui != null) {
-            super.buttonList.add(new LifeKnightButton("Back", 5, 5, 5, 50) {
-                @Override
-                public void work() {
-                    openGui(lastGui);
-                }
-            });
-        }
+        super.buttonList.add(new LifeKnightButton("Back", 5, 5, 5, 50) {
+            @Override
+            public void work() {
+                openGui(lastGui);
+            }
+        });
         listItems();
     }
 
@@ -171,7 +189,7 @@ public class LifeKnightObjectListGui extends GuiScreen {
 
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (keyCode == 0xD3 && selectedItem != null) {
-            removeSelectedButton();
+            workWithSelectedButton();
         } else {
             searchField.textboxKeyTyped(typedChar, keyCode);
             super.keyTyped(typedChar, keyCode);
@@ -188,13 +206,13 @@ public class LifeKnightObjectListGui extends GuiScreen {
                 break;
             }
         }
-        removeButton.visible = aButtonHasBeenSelected;
+        workWithSelectedbuttonButton.visible = aButtonHasBeenSelected;
     }
 
-    protected void removeSelectedButton() {
-        lifeKnightObjectList.removeByDisplayString(selectedItem.displayString);
+    protected void workWithSelectedButton() {
+        parkourWorld.toggleByLocation(selectedItem.displayString, orderType);
         selectedItem.visible = false;
-        removeButton.visible = false;
+        workWithSelectedbuttonButton.visible = false;
         selectedItem = null;
         listItems();
     }
@@ -204,9 +222,9 @@ public class LifeKnightObjectListGui extends GuiScreen {
         openButtons.clear();
         this.buttonList.removeIf(guiButton -> guiButton instanceof ListItemButton || guiButton.displayString.equals(">"));
 
-        for (LifeKnightObject element : lifeKnightObjectList.getValue()) {
-            if (searchInput.isEmpty() || element.isSearchResult(searchInput)) {
-                ListItemButton listItemButton = new ListItemButton(listItemButtons.size() + 6, element.getCustomDisplayString()) {
+        for (ParkourSession parkourSession : parkourWorld.getSessionsOrdered(orderType)) {
+            if ((searchInput.isEmpty() || parkourSession.getFormattedDate().toLowerCase().contains(searchInput.toLowerCase())) && ((showType && !parkourSession.isDeleted()) || (!showType && parkourSession.isDeleted()))) {
+                ListItemButton listItemButton = new ListItemButton(listItemButtons.size() + 6, orderType ? parkourSession.getFormattedDate() : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed())) {
                     @Override
                     public void work() {
                         if (this.isSelectedButton) {
@@ -218,19 +236,20 @@ public class LifeKnightObjectListGui extends GuiScreen {
                         }
                     }
                 };
-                listItemButtons.add(listItemButton);
                 LifeKnightButton lifeKnightButton = new LifeKnightButton(listItemButtons.size() + 1000, listItemButton.xPosition + listItemButton.width + 10,
-                        10 + (listItemButtons.size() - 1) * 30,
+                        10 + listItemButtons.size() * 30,
                         20,
                         20, ">") {
                     @Override
                     public void work() {
-                        openGui(new LifeKnightObjectGui(element, LifeKnightObjectListGui.this));
+                        openGui(new ParkourSessionGui(parkourSession, ParkourWorldGui.this));
                     }
                 };
+                listItemButtons.add(listItemButton);
                 openButtons.add(lifeKnightButton);
             }
         }
+
         listMessage = listItemButtons.size() == 0 ? GRAY + "No items found" : "";
 
         clearButton.visible = listItemButtons.size() > 1;

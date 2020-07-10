@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.lifeknight.hypixelparkourhud.utilities.Miscellaneous.*;
-import static com.lifeknight.hypixelparkourhud.mod.Mod.modColor;
-import static com.lifeknight.hypixelparkourhud.mod.Mod.openGui;
+import static com.lifeknight.hypixelparkourhud.mod.Core.modColor;
+import static com.lifeknight.hypixelparkourhud.mod.Core.openGui;
 import static net.minecraft.util.EnumChatFormatting.*;
 
 public class LifeKnightGui extends GuiScreen {

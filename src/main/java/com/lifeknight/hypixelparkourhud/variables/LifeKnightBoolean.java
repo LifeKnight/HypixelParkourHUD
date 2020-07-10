@@ -3,7 +3,7 @@ package com.lifeknight.hypixelparkourhud.variables;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.configuration;
+import static com.lifeknight.hypixelparkourhud.mod.Core.configuration;
 import static net.minecraft.util.EnumChatFormatting.GREEN;
 import static net.minecraft.util.EnumChatFormatting.RED;
 

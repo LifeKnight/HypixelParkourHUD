@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.modId;
+import static com.lifeknight.hypixelparkourhud.mod.Core.modId;
 
 public class Configuration {
 	private JsonObject configurationAsJsonObject = new JsonObject();

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lifeknight.hypixelparkourhud.mod.Mod.openGui;
+import static com.lifeknight.hypixelparkourhud.mod.Core.openGui;
 import static com.lifeknight.hypixelparkourhud.utilities.Miscellaneous.*;
 import static net.minecraft.util.EnumChatFormatting.GRAY;
 import static net.minecraft.util.EnumChatFormatting.RED;
@@ -207,7 +207,7 @@ public class ListGui extends GuiScreen {
     protected void removeSelectedButton() {
         try {
             //noinspection unchecked
-            lifeKnightList.removeElement(lifeKnightList.getMap().inverse().get(selectedItem.getButtonText()));
+            lifeKnightList.removeElement(lifeKnightList.getMap().inverse().get(selectedItem.displayString));
             selectedItem.visible = false;
             removeButton.visible = false;
             selectedItem = null;
