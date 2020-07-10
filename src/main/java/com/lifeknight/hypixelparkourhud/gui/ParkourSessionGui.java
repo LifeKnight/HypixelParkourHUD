@@ -33,7 +33,7 @@ public class ParkourSessionGui extends GuiScreen {
         for (int i = 0; i < parkourSession.getCheckpointTimes().size(); i++) {
             drawCenteredString(
                     fontRendererObj,
-                    GOLD + "Checkpoint #" + (i + 1) + " - " + WHITE + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : parkourSession.getCheckpointTimes().get(i)),
+                    GOLD + (i == parkourSession.getCheckpointTimes().size() - 1 ? "End" : "Checkpoint #" + (i + 1)) + " - " + WHITE + Miscellaneous.formatTimeFromMilliseconds(timeDisplayType.getValue() == 0 ? parkourSession.getTimeUpToCheckpoint(i + 1) : parkourSession.getCheckpointTimes().get(i)),
                     super.width / 2,
                     getScaledHeight(200 + (i * 25)),
                     0xffffffff);
