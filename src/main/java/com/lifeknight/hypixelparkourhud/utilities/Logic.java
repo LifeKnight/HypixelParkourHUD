@@ -51,4 +51,8 @@ public class Logic {
 	public static boolean containsLetters(String input) {
 		return Pattern.compile("[a-zA-Z]").matcher(input).find();
 	}
+
+	public static boolean containsNonWhiteSpace(String input) {
+		return Pattern.compile("[\\S]").matcher(input).find();
+	}
 }

@@ -1,8 +1,8 @@
 [
 {
-  "modid": "mod",
-  "name": "Mod",
-  "description": "A Mod.",
+  "modid": "hypixelparkourhud",
+  "name": "Hypixel Parkour HUD",
+  "description": "Turns the Hypixel lobby and housing parkour into an HUD similar to that of XSplit.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",

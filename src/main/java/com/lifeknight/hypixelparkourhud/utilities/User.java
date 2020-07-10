@@ -11,7 +11,7 @@ import java.util.List;
 public class User {
 	
 	public static String getUsername() {
-		return Minecraft.getMinecraft().thePlayer.getName();
+		return Minecraft.getMinecraft().getSession().getUsername();
 	}
 	
 	public static List<String> getVisiblePlayerList() {

@@ -35,12 +35,18 @@ public class LifeKnightCycle extends LifeKnightVariable {
 
     public String next() {
         currentValue = currentValue == values.size() - 1 ? 0 : currentValue + 1;
+        if (configuration != null) {
+            configuration.updateConfigurationFromVariables();
+        }
         onValueChange();
         return getCurrentValueString();
     }
 
     public String previous() {
         currentValue = currentValue == 0 ? values.size() - 1 : currentValue - 1;
+        if (configuration != null) {
+            configuration.updateConfigurationFromVariables();
+        }
         onValueChange();
         return getCurrentValueString();
     }
@@ -57,27 +63,12 @@ public class LifeKnightCycle extends LifeKnightVariable {
         return getCurrentValueString();
     }
 
-    public void addToValues(String newValue) throws IOException {
-        if (values.contains(newValue)) {
-            throw new IOException(name + " already contains " + newValue + "!");
-        } else {
-            values.add(newValue);
-            onAddValue();
-        }
-    }
-
-    public void removeFromValues(String valueToRemove) throws IOException {
-        if (values.contains(valueToRemove)) {
-            values.remove(valueToRemove);
-            onRemoveValue();
-        } else {
-            throw new IOException(name + " does not contain " + valueToRemove + "!");
-        }
-    }
-
     public void clearValues() {
         currentValue = -1;
         values.clear();
+        if (configuration != null) {
+            configuration.updateConfigurationFromVariables();
+        }
         onClearValues();
     }
 
@@ -102,6 +93,6 @@ public class LifeKnightCycle extends LifeKnightVariable {
         if (iCustomDisplayString != null) {
             return iCustomDisplayString.customDisplayString();
         }
-        return name + EnumChatFormatting.YELLOW + " " + getCurrentValueString();
+        return name + ": " + EnumChatFormatting.YELLOW + getCurrentValueString();
     }
 }

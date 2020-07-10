@@ -152,4 +152,58 @@ public class Miscellaneous {
 		int i = heightIn * getScaleFactor();
 		return (int) (i * (getSupposedHeight() / (double) getGameHeight()));
 	}
+
+	public static String formatTimeFromMilliseconds(long milliseconds) {
+		long days;
+		long hours;
+		long minutes;
+		long seconds;
+		long millisecondsLeft = milliseconds;
+		days = millisecondsLeft / 86400000;
+		millisecondsLeft %= 86400000;
+		hours = millisecondsLeft / 3600000;
+		millisecondsLeft %= 3600000;
+		minutes = millisecondsLeft / 60000;
+		millisecondsLeft %= 60000;
+		seconds = millisecondsLeft / 1000;
+		millisecondsLeft %= 1000;
+
+		StringBuilder result = new StringBuilder();
+
+		if (days > 0) {
+			result.append(days).append(":");
+			result.append(appendTime(hours)).append(":");
+		} else {
+			result.append(hours).append(":");
+		}
+
+		result.append(appendTime(minutes)).append(":");
+
+		result.append(appendTime(seconds)).append(".");
+
+		result.append(formatMilliseconds(millisecondsLeft));
+
+		return result.toString();
+	}
+
+	private static String appendTime(long timeValue) {
+		StringBuilder result = new StringBuilder();
+		if (timeValue > 9) {
+			result.append(timeValue);
+		} else {
+			result.append("0").append(timeValue);
+		}
+		return result.toString();
+	}
+
+	private static String formatMilliseconds(long milliseconds) {
+		String asString = String.valueOf(milliseconds);
+
+		if (asString.length() == 1) {
+			return "00" + milliseconds;
+		} else if (asString.length() == 2) {
+			return "0" + milliseconds;
+		}
+		return asString;
+	}
 }

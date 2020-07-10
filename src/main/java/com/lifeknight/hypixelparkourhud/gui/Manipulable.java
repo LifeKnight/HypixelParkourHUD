@@ -15,8 +15,10 @@ public abstract class Manipulable {
 
     public Manipulable(String name, int defaultX, int defaultY) {
         manipulableComponents.add(this);
-        this.positionX = new LifeKnightNumber.LifeKnightInteger( "Position X", name + " HUD Text", defaultX, 0, 1920);
-        this.positionY = new LifeKnightNumber.LifeKnightInteger("Position Y", name + " HUD Text", defaultY, 0, 1080);
+        this.positionX = new LifeKnightNumber.LifeKnightInteger("Position X", name, defaultX, 0, 1920);
+        this.positionY = new LifeKnightNumber.LifeKnightInteger("Position Y", name, defaultY, 0, 1080);
+        positionX.setShowInLifeKnightGui(false);
+        positionY.setShowInLifeKnightGui(false);
     }
 
     public void updatePosition(int x, int y) {
