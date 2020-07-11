@@ -27,6 +27,12 @@ public class ParkourWorld {
         return sessions;
     }
 
+    public List<ParkourSession> getVisibleSessions() {
+        List<ParkourSession> result = new ArrayList<>(sessions);
+        result.removeIf(ParkourSession::isDeleted);
+        return result;
+    }
+
     public List<ParkourSession> getSessionsOrdered(boolean orderType) {
         List<ParkourSession> clone = new ArrayList<>(sessions);
         List<ParkourSession> result = new ArrayList<>();
@@ -69,7 +75,7 @@ public class ParkourWorld {
     }
 
     public ParkourSession getSessionToCompare() {
-        List<ParkourSession> clone = new ArrayList<>(sessions);
+        List<ParkourSession> clone = getVisibleSessions();
         List<ParkourSession> result = new ArrayList<>();
         if (timeToCompare.getValue() == 0) {
             while (clone.size() != 0) {
@@ -94,7 +100,7 @@ public class ParkourWorld {
             clone.remove(latestParkourSession);
             if (result.size() > 1) break;
         }
-        return sessionIsRunning ? result.get(0) : result.get(1);
+        return sessionIsRunning || result.size() == 1 ? result.get(0) : result.get(1);
     }
 
     public ParkourSession getLatestParkourSession() {

@@ -157,7 +157,7 @@ public class ParkourSession {
 
         asJsonObject.addProperty("id", id);
         asJsonObject.addProperty("type", type);
-        asJsonObject.addProperty("location", location);
+        asJsonObject.addProperty("location", location.replace("§", "\\u00A7"));
         asJsonObject.addProperty("startTime", startTime);
         asJsonObject.addProperty("millisecondsElapsed", millisecondsElapsed);
         JsonArray checkpointTimes = new JsonArray();
@@ -183,7 +183,7 @@ public class ParkourSession {
                 checkpointTimes.add(checkpointTime.getAsLong());
             }
 
-            ParkourSession parkourSession = new ParkourSession(id, type, location, startTime, millisecondsElapsed, checkpointTimes);
+            ParkourSession parkourSession = new ParkourSession(id, type, location.replace("\\u00A7", "§"), startTime, millisecondsElapsed, checkpointTimes);
 
             parkourSession.isDeleted = deletedSessionIds.getValue().contains(parkourSession.id);
         } catch (Exception exception) {

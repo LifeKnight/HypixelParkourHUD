@@ -38,7 +38,7 @@ public class ParkourHud extends Manipulable {
     @Override
     public int getHeight() {
         ParkourWorld parkourWorld;
-        if ((parkourWorld = ParkourWorld.getCurrentParkourWorld()) != null && parkourWorld.getSessions().size() != 0) {
+        if ((parkourWorld = ParkourWorld.getCurrentParkourWorld()) != null && parkourWorld.getVisibleSessions().size() != 0) {
             return parkourWorld.getSessionToCompare().getCheckpointTimes().size() * 12 + 12;
         }
         ParkourSession parkourSession;
@@ -66,14 +66,14 @@ public class ParkourHud extends Manipulable {
 
         ParkourSession parkourSession = sessionIsRunning || parkourWorld == null || parkourWorld.getSessions().size() == 0 ? ParkourSession.getCurrentParkourSession() : parkourWorld.getLatestParkourSession();
 
-        if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
+        if (parkourWorld != null && parkourWorld.getVisibleSessions().size() != 0) {
             ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
             drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld.getLocation(), parkourSession == null ? "" : (!sessionIsRunning ? ((previousParkourSession.getMillisecondsElapsed() > parkourSession.getMillisecondsElapsed() ? (GREEN + "-") : (RED + "+")) + Math.abs((previousParkourSession.getMillisecondsElapsed() - parkourSession.getMillisecondsElapsed())) / 1000.F + " ") : "") + WHITE + Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         } else {
             drawRectangleWithStrings(xPosition, yPosition, xPosition + getWidth(), yPosition + 12, dark, opacity, parkourWorld == null ? "NULL" : parkourWorld.getLocation(), parkourSession == null ? "" : Miscellaneous.formatTimeFromMilliseconds(parkourSession.getMillisecondsElapsed()));
         }
         if (parkourSession != null) {
-            if (parkourWorld != null && parkourWorld.getSessions().size() != 0) {
+            if (parkourWorld != null && parkourWorld.getVisibleSessions().size() != 0) {
                 ParkourSession previousParkourSession = parkourWorld.getSessionToCompare();
                 for (int i = 0; i < previousParkourSession.getCheckpointTimes().size(); i++) {
                     float[] color = i % 2 == 0 ? light : dark;
