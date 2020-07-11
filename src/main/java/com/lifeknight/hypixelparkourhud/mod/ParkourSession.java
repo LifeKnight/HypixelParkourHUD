@@ -119,12 +119,15 @@ public class ParkourSession {
         return checkpointTimes;
     }
 
-    public long getStartTime() {
-        return startTime;
+    public long getCheckpointTime(int index) {
+        if (timeDisplayType.getValue() == 0) {
+            return index > checkpointTimes.size() - 1 ? getMillisecondsElapsed() : getTimeUpToCheckpoint(index + 1);
+        }
+        return index > checkpointTimes.size() - 1 ? getMillisecondsElapsed() - getTimeUpToCheckpoint(index + 1) : checkpointTimes.get(index);
     }
 
-    public long getLastCheckpointTime() {
-        return lastCheckpointTime;
+    public long getStartTime() {
+        return startTime;
     }
 
     public long getMillisecondsElapsed() {
@@ -146,10 +149,6 @@ public class ParkourSession {
 
     public static ParkourSession getCurrentParkourSession() {
         return currentParkourSession;
-    }
-
-    public static List<ParkourSession> getParkourSessions() {
-        return parkourSessions;
     }
 
     @Override

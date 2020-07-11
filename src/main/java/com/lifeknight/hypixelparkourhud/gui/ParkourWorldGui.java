@@ -114,7 +114,7 @@ public class ParkourWorldGui extends GuiScreen {
             }
         });
 
-        super.buttonList.add(workWithSelectedbuttonButton = new LifeKnightButton("Remove", 3, getScaledWidth(75), getScaledHeight(260), getScaledWidth(150)) {
+        super.buttonList.add(workWithSelectedbuttonButton = new LifeKnightButton("", 3, getScaledWidth(75), getScaledHeight(260), getScaledWidth(150)) {
             @Override
             public void work() {
                 workWithSelectedButton();
@@ -122,7 +122,7 @@ public class ParkourWorldGui extends GuiScreen {
 
             @Override
             public void drawButton(Minecraft mc, int mouseX, int mouseY) {
-                displayString = showType ? "Restore" : "Delete";
+                displayString = showType ? "Delete" : "Restore";
                 super.drawButton(mc, mouseX, mouseY);
             }
         });
