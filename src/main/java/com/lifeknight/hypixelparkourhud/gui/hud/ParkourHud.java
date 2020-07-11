@@ -84,7 +84,7 @@ public class ParkourHud extends Manipulable {
                                 (previousCheckpointTime > checkpointTime ? (GREEN + "-") : (RED + "+")) + Math.abs(previousCheckpointTime - checkpointTime) / 1000.F + " " + WHITE + Miscellaneous.formatTimeFromMilliseconds(checkpointTime));
                     } else {
                         long previousCheckpointTime = previousParkourSession.getCheckpointTime(i);
-                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, opacity, i == parkourSession.getCheckpointTimes().size() - 1 ? "End" : "Checkpoint #" + (i + 1),
+                        drawRectangleWithStrings(xPosition, yPosition + (12 * (i + 1)), xPosition + getWidth(), yPosition + (12 * (i + 1)) + 12, i == parkourSession.getCheckpointTimes().size() ? selected : color, opacity, i == previousParkourSession.getCheckpointTimes().size() - 1 ? "End" : "Checkpoint #" + (i + 1),
                                 YELLOW + Miscellaneous.formatTimeFromMilliseconds(previousCheckpointTime));
                     }
                 }
