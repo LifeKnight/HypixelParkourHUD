@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.lifeknight.hypixelparkourhud.mod.Core.*;
-import static net.minecraft.util.EnumChatFormatting.*;
+import static com.lifeknight.hypixelparkourhud.mod.Core.modColor;
+import static com.lifeknight.hypixelparkourhud.mod.Core.modName;
 
 public enum Chat {
 	NORMAL(""),
@@ -34,30 +34,6 @@ public enum Chat {
 				@Override
 				public void run() {
 					addChatMessage(msg);
-				}
-			}, 100L);
-		}
-	}
-	public static void addCommandUsageMessage(String msg) {
-		addChatMessage(DARK_GREEN + msg);
-	}
-
-	public static void addErrorMessage(String msg) {
-		addChatMessage(RED + msg);
-	}
-
-	public static void addSuccessMessage(String msg) {
-		addChatMessage(GREEN + msg);
-	}
-
-	public static void addChatMessageWithoutName(String msg) {
-		if (Minecraft.getMinecraft().theWorld != null) {
-			Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(msg));
-		} else {
-			new Timer().schedule(new TimerTask() {
-				@Override
-				public void run() {
-					addChatMessageWithoutName(msg);
 				}
 			}, 100L);
 		}
